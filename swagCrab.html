@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Swag Crab</title>
+</head>
+
+<body>
+<H1>Swag Crabs On the Beach</H1>
+<canvas id = "myCanvas" width="400" height="400" style="border:1px solid #000000;"></canvas>
+<style type = "text/css">
+      #myCanvas{
+          border: dotted 3px black;
+          background-color: #F0E68C;
+      }
+</style>
+
+
+<script>
+  
+function BigCrab(context,x,y,size,path)
+{
+    this.size = size || 0.5;
+    this.path = path;
+    this.speed = 0.1;
+    this.posX = x;
+    this.posY = y;
+    this.pathU = 0;
+    this.heading = 0;
+    this.clawAngle = 0;
+    this.crabAngle = 0;
+    this.context = context;
+}
+BigCrab.prototype.drawLeg = function() {
+    this.context.translate(10,10);
+    this.context.beginPath();
+    this.context.moveTo(-100,-80);
+    this.context.lineTo(-100,-152);
+    this.context.moveTo(-100,-100);
+    this.context.lineTo(-110,-152);
+    this.context.moveTo(-100,-100);
+    this.context.lineTo(-120,-152);
+    this.context.moveTo(-130,-100);
+    this.context.lineTo(-140,-150);
+    this.context.moveTo(-130,-100);
+    this.context.lineTo(-130,-150);
+    this.context.moveTo(-130,-100);
+    this.context.lineTo(-150,-150);
+    this.context.lineWidth = 4;
+    this.context.strokeStyle ="red";
+    this.context.fill();
+    this.context.stroke();
+    
+};
+BigCrab.prototype.drawClaw = function() {
+    this.context.save();
+    this.drawLeg();
+    this.context.translate(-30,20);
+    this.context.stroke();
+    this.context.rotate(Math.PI/2);
+    this.context.rotate(Math.PI/3);
+    this.context.rotate(Math.PI/12);
+    this.context.restore();
+    this.context.beginPath();
+    this.context.fill();
+    this.context.restore();
+};
+BigCrab.prototype.drawBody = function() {
+    this.context.save();
+    this.context.beginPath();
+    this.context.ellipse(0, 0, 30, 43, 85 * Math.PI/180, 0, 2 * Math.PI);
+    this.context.fillStyle = "red";
+    this.context.closePath();
+    this.context.fill();
+    this.context.stroke();
+    this.context.restore();
+};
+BigCrab.prototype.drawEye = function() {
+    this.context.save();
+    this.context.beginPath();
+    this.context.arc(-20,40,10,0,2*Math.PI);
+    this.context.stroke();
+    this.context.beginPath();
+    this.context.arc(20,38,10,0,2*Math.PI); 
+    this.context.fillStyle = "black";
+    this.context.stroke();
+    this.context.beginPath();
+    this.context.arc(-20,40,5,0,2*Math.PI);
+    this.context.fill();
+    this.context.stroke();
+    this.context.beginPath();
+    this.context.arc(20,38,5,0,2*Math.PI); 
+    this.context.fill();
+    this.context.closePath();
+    this.context.stroke();
+    this.context.restore();
+};
+
+BigCrab.prototype.drawArm = function() {
+    this.context.save();
+    this.context.beginPath();
+    this.context.moveTo(-33,-30);
+    this.context.bezierCurveTo( -33,-100, -40,-5,-40,-60 );
+    this.context.bezierCurveTo(-60,-50, -60,-15, -8,-9);
+    this.context.fillStyle = "red";
+    this.context.fill();
+    this.context.stroke();
+    this.context.restore();
+};
+
+BigCrab.prototype.draw = function() {
+    this.context.save();
+    this.context.scale(this.size, this.size);
+    if (this.path) {
+        var path1 = this.path.eval(this.pathU);
+        var distance = Math.sqrt(path1[3]*path1[3] + path1[2]*path1[2]);
+        this.context.transform(path1[2]/distance,path1[3]/distance, 
+                               -path1[3]/distance, path1[2]/distance, 
+                               path1[0],path1[1]);
+        this.context.rotate(-Math.PI/2); 
+    } else {
+        this.context.translate(this.posX, this.posY);
+        this.context.rotate(this.heading);
+    }
+    this.drawBody();
+    this.drawEye();
+    this.context.save();
+    this.context.rotate(Math.PI/4);
+    this.context.rotate(Math.PI/2);
+    this.context.rotate(Math.PI/2);
+    this.context.rotate(Math.PI/2);
+    this.context.restore();
+    this.context.save();
+    this.context.save();
+    this.context.translate(100,100);
+    this.context.rotate(Math.PI/43);
+    this.drawClaw();
+    this.context.restore();
+    this.context.save();
+    this.context.save();
+    this.context.translate(0,0);
+    this.context.rotate(this.crabAngle/5);
+    this.drawArm();
+    this.context.restore();
+    this.context.restore();
+    this.context.translate(0,0);
+    this.context.rotate(-this.clawAngle/5);
+    this.drawArm();
+    this.context.restore();
+}
+BigCrab.prototype.update = function() {
+    this.crabAngle -= 0.15;
+    this.clawAngle -= 0.15;
+    if(this.crabAngle <= -5){
+      this.crabAngle = 0;
+    }
+    if(this.clawAngle <= -5){
+      this.clawAngle = 0;
+    }
+    this.pathU += 0.1 * this.speed;
+}
+function CrabPath(x,y,r) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+}
+CrabPath.prototype.eval = function(u) {
+    var x = this.r * Math.tan(u);
+    var y = this.r * Math.cos(u);
+    return [x + this.x,y + this.y ,-1,x];
+}
+function Draw() {
+        var theCanvas;
+        var myContext;
+        var Crabs = [];
+        function draw() {
+            theCanvas.width = theCanvas.width;
+            myContext.save();
+            Crabs.forEach(function(c) { c.update();})
+            Crabs.forEach(function(c) { c.draw(); })
+            myContext.restore();
+            window.requestAnimationFrame(draw);
+        }
+        theCanvas = document.getElementById('myCanvas');
+        myContext = theCanvas.getContext('2d');
+        Crabs.push(new BigCrab(myContext));
+        Crabs.push(new BigCrab(myContext,1,1,1));
+        Crabs.push(new BigCrab(myContext,1,1,.5));
+        Crabs.push(new BigCrab(myContext,1,1,.5));
+        Crabs.push(new BigCrab(myContext,1,1,.5));
+        Crabs[0].path = new CrabPath(100,100,50);
+        Crabs[1].path = new CrabPath(150,250,75);
+        Crabs[2].path = new CrabPath(300,330,90);
+        Crabs[3].path = new CrabPath(125,200,80);
+        Crabs[4].path = new CrabPath(275,250,60);
+        draw();
+        
+    }
+     
+    window.onload=Draw;
+    
+</script>
+
+</body>
+</html>
